@@ -1,0 +1,275 @@
+﻿/****** Object:  StoredProcedure [dbo].[UpdateProduct]    Script Date: 10/13/2024 8:33:30 PM ******/
+DROP PROCEDURE IF EXISTS [dbo].[UpdateProduct]
+GO
+/****** Object:  StoredProcedure [dbo].[UpdateCategory]    Script Date: 10/13/2024 8:33:30 PM ******/
+DROP PROCEDURE IF EXISTS [dbo].[UpdateCategory]
+GO
+/****** Object:  StoredProcedure [dbo].[InsertProductCategory]    Script Date: 10/13/2024 8:33:30 PM ******/
+DROP PROCEDURE IF EXISTS [dbo].[InsertProductCategory]
+GO
+/****** Object:  StoredProcedure [dbo].[GetProductsByDateRange]    Script Date: 10/13/2024 8:33:30 PM ******/
+DROP PROCEDURE IF EXISTS [dbo].[GetProductsByDateRange]
+GO
+/****** Object:  StoredProcedure [dbo].[GetProductById]    Script Date: 10/13/2024 8:33:30 PM ******/
+DROP PROCEDURE IF EXISTS [dbo].[GetProductById]
+GO
+/****** Object:  StoredProcedure [dbo].[GetCategoryById]    Script Date: 10/13/2024 8:33:30 PM ******/
+DROP PROCEDURE IF EXISTS [dbo].[GetCategoryById]
+GO
+/****** Object:  StoredProcedure [dbo].[GetAllProducts]    Script Date: 10/13/2024 8:33:30 PM ******/
+DROP PROCEDURE IF EXISTS [dbo].[GetAllProducts]
+GO
+/****** Object:  StoredProcedure [dbo].[GetAllCategoriesP]    Script Date: 10/13/2024 8:33:30 PM ******/
+DROP PROCEDURE IF EXISTS [dbo].[GetAllCategoriesP]
+GO
+/****** Object:  StoredProcedure [dbo].[GetAllCategories]    Script Date: 10/13/2024 8:33:30 PM ******/
+DROP PROCEDURE IF EXISTS [dbo].[GetAllCategories]
+GO
+/****** Object:  StoredProcedure [dbo].[DeleteProduct]    Script Date: 10/13/2024 8:33:30 PM ******/
+DROP PROCEDURE IF EXISTS [dbo].[DeleteProduct]
+GO
+/****** Object:  StoredProcedure [dbo].[DeleteCategory]    Script Date: 10/13/2024 8:33:30 PM ******/
+DROP PROCEDURE IF EXISTS [dbo].[DeleteCategory]
+GO
+/****** Object:  StoredProcedure [dbo].[AddProduct]    Script Date: 10/13/2024 8:33:30 PM ******/
+DROP PROCEDURE IF EXISTS [dbo].[AddProduct]
+GO
+/****** Object:  StoredProcedure [dbo].[AddCategory]    Script Date: 10/13/2024 8:33:30 PM ******/
+DROP PROCEDURE IF EXISTS [dbo].[AddCategory]
+GO
+/****** Object:  StoredProcedure [dbo].[AddCategory]    Script Date: 10/13/2024 8:33:30 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[AddCategory]
+@CategoryName nvarchar(100),
+@CreatedAt datetime
+AS
+BEGIN
+	INSERT INTO Categories (CategoryName, CreatedAt) VALUES (@CategoryName, @CreatedAt)
+END
+GO
+/****** Object:  StoredProcedure [dbo].[AddProduct]    Script Date: 10/13/2024 8:33:30 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[AddProduct]
+    @ProductName NVARCHAR(100),  
+    @Price DECIMAL(18, 4),       
+    @Description NVARCHAR(255) = null,   
+    @StockQuantity INT,
+    @CreatedAt DATETIME,
+	@CategoryID int,
+	@pID int output
+AS
+BEGIN
+    SET NOCOUNT ON;  
+
+    INSERT INTO Products (ProductName, Price, Description, StockQuantity, CreatedAt, CategoryID)
+    VALUES (@ProductName, @Price, @Description, @StockQuantity, @CreatedAt, @CategoryID);
+
+	--declare @pID int = SCOPE_IDENTITY() ; 
+	--set @pID =(select top 1 ProductID from Products order by ProductID desc) 
+	set @pID = SCOPE_IDENTITY()
+END
+
+GO
+/****** Object:  StoredProcedure [dbo].[DeleteCategory]    Script Date: 10/13/2024 8:33:30 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[DeleteCategory]
+@ID INT
+AS
+BEGIN
+DELETE FROM Categories where CategoryID = @ID
+END
+GO
+/****** Object:  StoredProcedure [dbo].[DeleteProduct]    Script Date: 10/13/2024 8:33:30 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE PROCEDURE [dbo].[DeleteProduct]
+
+	@ID INT
+AS
+BEGIN
+    SET NOCOUNT ON;  -- Prevents extra result sets from interfering with SELECT statements
+	
+	DELETE FROM ProductCategories where ProductID = @ID
+
+    DELETE FROM Products
+    WHERE ProductID = @ID;  
+
+END
+
+GO
+/****** Object:  StoredProcedure [dbo].[GetAllCategories]    Script Date: 10/13/2024 8:33:30 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[GetAllCategories]
+	
+AS
+BEGIN
+	SELECT * FROM Categories
+END
+GO
+/****** Object:  StoredProcedure [dbo].[GetAllCategoriesP]    Script Date: 10/13/2024 8:33:30 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+create PROCEDURE [dbo].[GetAllCategoriesP]
+	
+AS
+BEGIN
+	SELECT CategoryID, CategoryName FROM Categories
+END
+GO
+/****** Object:  StoredProcedure [dbo].[GetAllProducts]    Script Date: 10/13/2024 8:33:30 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[GetAllProducts]
+AS
+BEGIN
+    SET NOCOUNT ON;  
+
+    SELECT p.ProductID, p.ProductName, p.Price, p.Description, p.StockQuantity, p.CreatedAt, ISNULL(c.CategoryName, '') AS CategoryName, p.CategoryID
+    FROM Products p LEFT JOIN
+	ProductCategories pc on pc.ProductID = p.ProductID left join
+	Categories c on c.CategoryID = pc.CategoryID
+	
+	;   
+END
+
+GO
+/****** Object:  StoredProcedure [dbo].[GetCategoryById]    Script Date: 10/13/2024 8:33:30 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE  [dbo].[GetCategoryById]
+@ID int 
+AS
+BEGIN
+SELECT * FROM Categories
+END
+GO
+/****** Object:  StoredProcedure [dbo].[GetProductById]    Script Date: 10/13/2024 8:33:30 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[GetProductById]
+    @ID INT = NULL  
+AS
+BEGIN
+    SET NOCOUNT ON;  
+
+    SELECT *
+    FROM Products
+    WHERE ProductID = @ID; 
+END
+
+GO
+/****** Object:  StoredProcedure [dbo].[GetProductsByDateRange]    Script Date: 10/13/2024 8:33:30 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[GetProductsByDateRange]
+@DatumOd datetime = null,
+@DatumDo datetime = null
+AS
+BEGIN
+	SELECT p.ProductID, p.ProductName, p.Price, p.Description, p.StockQuantity, p.CreatedAt, ISNULL(c.CategoryName, '') AS CategoryName, p.CategoryID
+    FROM Products p LEFT JOIN
+	ProductCategories pc on pc.ProductID = p.ProductID left join
+	Categories c on c.CategoryID = pc.CategoryID
+	WHERE   (cast(p.CreatedAt as date) >= @DatumOd AND cast(p.CreatedAt as date) <= @DatumDo) or (cast(p.CreatedAt as date) >= @DatumOd and @DatumDo is null) or (cast(p.CreatedAt as date) <= @DatumDo and @DatumOd is null) or
+	(@DatumOd is null and @DatumDo is null)
+
+END
+GO
+/****** Object:  StoredProcedure [dbo].[InsertProductCategory]    Script Date: 10/13/2024 8:33:30 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[InsertProductCategory]
+@pID int,
+@cID int
+AS
+BEGIN
+	INSERT INTO ProductCategories (ProductID, CategoryID) VALUes (@pID, @cID)
+END
+GO
+/****** Object:  StoredProcedure [dbo].[UpdateCategory]    Script Date: 10/13/2024 8:33:30 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[UpdateCategory]
+@Id int,
+@CategoryName nvarchar(100),
+@CreatedAt datetime
+AS
+BEGIN
+	UPDATE Categories
+	set 
+	CategoryName = @CategoryName,
+	CreatedAt = @CreatedAt
+	WHERE  CategoryID = @Id
+END
+GO
+/****** Object:  StoredProcedure [dbo].[UpdateProduct]    Script Date: 10/13/2024 8:33:30 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE PROCEDURE [dbo].[UpdateProduct]
+  @ProductName NVARCHAR(100),  
+    @Price DECIMAL(18, 4),       
+    @Description NVARCHAR(255)  =null,   
+    @StockQuantity INT,
+    @CreatedAt DATETIME   ,
+	@Id INT,
+	@CategoryID int
+AS
+BEGIN
+    SET NOCOUNT ON;  -- Prevents extra result sets from interfering with SELECT statements
+
+    UPDATE Products
+    SET 
+        ProductName = @ProductName,
+        Price = @Price,
+        Description = @Description,
+        StockQuantity = @StockQuantity,
+        CreatedAt = @CreatedAt,
+		@CategoryID = @CategoryID 
+    WHERE ProductID = @Id;  
+
+	UPDATE ProductCategories SET  CategoryID = @CategoryID where ProductID = @Id
+END
+
+GO
